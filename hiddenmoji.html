@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090d20">
+  <meta name="description" content="HiddenMoji turns your messages into encrypted emoji codes.">
+  <title>HiddenMoji — Your Words. Your Emojis. Your Secret.</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080c1b;
+      --panel: rgba(19, 27, 55, .82);
+      --panel-2: rgba(25, 35, 70, .76);
+      --line: rgba(157, 174, 255, .16);
+      --text: #f4f6ff;
+      --muted: #a6b0d0;
+      --purple: #9b7cff;
+      --blue: #55b8ff;
+      --danger: #ff718b;
+      --success: #61e2b2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(ellipse at 12% 8%, rgba(111, 76, 220, .22), transparent 34%),
+        radial-gradient(ellipse at 88% 22%, rgba(43, 142, 220, .17), transparent 32%),
+        linear-gradient(145deg, #080c1b 0%, #101630 52%, #090d20 100%);
+      padding: 28px 16px 40px;
+    }
+    button, textarea, input { font: inherit; }
+    button { cursor: pointer; }
+    .shell { width: min(760px, 100%); margin: 0 auto; }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 14px; margin: 0 0 28px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark {
+      width: 46px; height: 46px; display: grid; place-items: center;
+      border: 1px solid rgba(177, 156, 255, .35); border-radius: 15px;
+      background: linear-gradient(145deg, rgba(155,124,255,.24), rgba(85,184,255,.13));
+      box-shadow: 0 8px 30px rgba(89, 74, 190, .2); font-size: 23px;
+    }
+    h1 { margin: 0; font-size: clamp(22px, 4vw, 28px); letter-spacing: -.8px; }
+    .tagline { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+    .info-button, .icon-button {
+      border: 1px solid var(--line); color: #e8eaff; background: rgba(255,255,255,.045);
+      border-radius: 12px; padding: 10px 13px; transition: .2s ease;
+    }
+    .info-button:hover, .icon-button:hover { border-color: rgba(155,124,255,.65); background: rgba(155,124,255,.12); }
+    .card {
+      border: 1px solid var(--line); border-radius: 24px; padding: clamp(18px, 4vw, 30px);
+      background: linear-gradient(150deg, rgba(22,31,63,.91), rgba(13,19,42,.91));
+      box-shadow: 0 24px 80px rgba(0,0,0,.32), inset 0 1px rgba(255,255,255,.04);
+      backdrop-filter: blur(16px);
+    }
+    .tabs {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 7px; padding: 6px;
+      border: 1px solid var(--line); border-radius: 15px; background: rgba(3,7,20,.42);
+      margin-bottom: 26px;
+    }
+    .tab {
+      border: 0; border-radius: 11px; padding: 12px 10px; color: var(--muted);
+      background: transparent; font-weight: 750; letter-spacing: .7px; transition: .2s ease;
+    }
+    .tab.active {
+      color: white; background: linear-gradient(100deg, rgba(139,104,255,.95), rgba(65,151,236,.92));
+      box-shadow: 0 6px 22px rgba(108,99,230,.25);
+    }
+    .intro { margin-bottom: 20px; }
+    .intro h2 { font-size: 21px; margin: 0 0 7px; letter-spacing: -.4px; }
+    .intro p { color: var(--muted); margin: 0; font-size: 14px; line-height: 1.55; }
+    .field-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 18px 0 9px; }
+    label { font-size: 13px; font-weight: 700; color: #dce2ff; }
+    .paste-button {
+      border: 1px solid rgba(111,174,255,.28); border-radius: 9px; padding: 7px 11px;
+      color: #c6e5ff; background: rgba(67,148,220,.1); font-size: 12px; font-weight: 700;
+    }
+    .paste-button:hover { background: rgba(67,148,220,.2); }
+    .input-wrap { position: relative; }
+    textarea, input[type="password"], input[type="text"] {
+      width: 100%; color: var(--text); background: rgba(5,10,27,.58);
+      border: 1px solid rgba(151,169,239,.2); border-radius: 14px; outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    textarea { min-height: 142px; resize: vertical; padding: 15px 16px; line-height: 1.6; }
+    textarea::placeholder, input::placeholder { color: #737f a3; color: #7883a5; }
+    textarea:focus, input:focus { border-color: rgba(145,125,255,.8); box-shadow: 0 0 0 3px rgba(145,125,255,.12); }
+    .password-row { display: flex; gap: 9px; }
+    .password-row input { padding: 13px 14px; min-width: 0; }
+    .show-password { flex: 0 0 auto; min-width: 54px; }
+    .hint { color: #8f9abb; font-size: 11px; line-height: 1.5; margin: 7px 2px 0; }
+    .primary {
+      width: 100%; margin-top: 21px; border: 0; border-radius: 13px; padding: 14px 18px;
+      color: white; font-weight: 800; letter-spacing: .8px;
+      background: linear-gradient(100deg, #8d6cff, #438fe9);
+      box-shadow: 0 10px 25px rgba(94,100,230,.24); transition: transform .18s, filter .18s;
+    }
+    .primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .primary:disabled { opacity: .65; cursor: wait; transform: none; }
+    .output-block { margin-top: 24px; }
+    .output-box {
+      min-height: 105px; padding: 15px; border-radius: 14px;
+      border: 1px solid rgba(111,174,255,.18); background: rgba(5,10,27,.48);
+      overflow-wrap: anywhere; white-space: pre-wrap; line-height: 1.8; color: #e6e9ff;
+      font-size: 16px;
+    }
+    .output-box.placeholder { color: #7782a4; font-size: 13px; }
+    .output-actions { display: flex; gap: 9px; margin-top: 10px; }
+    .secondary {
+      flex: 1; border: 1px solid var(--line); border-radius: 11px; padding: 11px 12px;
+      color: #e2e7ff; background: rgba(255,255,255,.045); font-size: 13px; font-weight: 700;
+    }
+    .secondary:hover { background: rgba(155,124,255,.12); border-color: rgba(155,124,255,.4); }
+    .status { min-height: 21px; margin: 12px 2px 0; font-size: 12px; color: var(--muted); }
+    .status.error { color: var(--danger); }
+    .status.success { color: var(--success); }
+    .footer { text-align: center; color: #7e89aa; font-size: 11px; margin: 18px 0 0; line-height: 1.6; }
+    .footer strong { color: #c5b8ff; }
+    .hidden { display: none !important; }
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 18px;
+      background: rgba(2,5,16,.72); backdrop-filter: blur(8px);
+    }
+    .modal {
+      width: min(440px, 100%); border: 1px solid rgba(155,124,255,.3); border-radius: 20px;
+      padding: 24px; background: #121a36; box-shadow: 0 25px 80px rgba(0,0,0,.5);
+    }
+    .modal-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .modal h3 { margin: 0; font-size: 20px; }
+    .modal p { color: var(--muted); line-height: 1.7; font-size: 13px; }
+    .creator { color: #e9dcff !important; font-weight: 750; margin-bottom: 0; }
+    @media (max-width: 480px) {
+      body { padding: 18px 11px 28px; }
+      header { margin-bottom: 19px; }
+      .brand-mark { width: 41px; height: 41px; }
+      .card { border-radius: 19px; }
+      .tagline { font-size: 10px; }
+      .info-button { padding: 9px 11px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">🔐</div>
+        <div>
+          <h1>HiddenMoji</h1>
+          <p class="tagline">Your Words. Your Emojis. Your Secret.</p>
+        </div>
+      </div>
+      <button class="info-button" id="infoButton" type="button" aria-haspopup="dialog">ⓘ Info</button>
+    </header>
+
+    <section class="card" aria-label="HiddenMoji converter">
+      <nav class="tabs" aria-label="Choose conversion mode">
+        <button class="tab active" id="textTab" type="button" aria-selected="true">TEXT</button>
+        <button class="tab" id="secretTab" type="button" aria-selected="false">SECRET</button>
+      </nav>
+
+      <section id="encryptPanel">
+        <div class="intro">
+          <h2>Turn words into mystery.</h2>
+          <p>Write your message, choose a password, and transform it into an emoji code.</p>
+        </div>
+        <div class="field-head">
+          <label for="plainInput">Your message</label>
+          <button class="paste-button" type="button" data-paste="plainInput">▣ Paste</button>
+        </div>
+        <textarea id="plainInput" placeholder="Type your message here..." spellcheck="false"></textarea>
+
+        <div class="field-head"><label for="encryptPassword">Create a password</label></div>
+        <div class="password-row">
+          <input id="encryptPassword" type="password" placeholder="Enter a password (8+ characters)" autocomplete="new-password">
+          <button class="icon-button show-password" type="button" data-toggle="encryptPassword" aria-label="Show password">👁</button>
+        </div>
+        <p class="hint">Use a password you can share safely with the receiver. HiddenMoji cannot recover a forgotten password.</p>
+        <button class="primary" id="encryptButton" type="button">🔒 ENCRYPT MESSAGE</button>
+      </section>
+
+      <section id="decryptPanel" class="hidden">
+        <div class="intro">
+          <h2>Reveal the hidden message.</h2>
+          <p>Paste the emoji code and enter the password used by the sender.</p>
+        </div>
+        <div class="field-head">
+          <label for="secretInput">Secret emoji code</label>
+          <button class="paste-button" type="button" data-paste="secretInput">▣ Paste</button>
+        </div>
+        <textarea id="secretInput" placeholder="Paste the emoji message here..." spellcheck="false"></textarea>
+
+        <div class="field-head"><label for="decryptPassword">Message password</label></div>
+        <div class="password-row">
+          <input id="decryptPassword" type="password" placeholder="Enter the sender's password" autocomplete="off">
+          <button class="icon-button show-password" type="button" data-toggle="decryptPassword" aria-label="Show password">👁</button>
+        </div>
+        <button class="primary" id="decryptButton" type="button">🔓 DECRYPT MESSAGE</button>
+      </section>
+
+      <div class="output-block">
+        <div class="field-head"><label id="outputLabel" for="output">Your encrypted emoji message</label></div>
+        <div class="output-box placeholder" id="output" role="status" aria-live="polite">Your result will appear here...</div>
+        <div class="output-actions">
+          <button class="secondary" id="copyButton" type="button">▣ Copy result</button>
+          <button class="secondary" id="clearButton" type="button">✕ Clear</button>
+        </div>
+      </div>
+      <p class="status" id="status" aria-live="polite"></p>
+    </section>
+
+    <p class="footer">Messages are encrypted in your browser. No account. No message storage.<br>Made with <strong>❤️ by HARISH</strong></p>
+  </main>
+
+  <div class="modal-backdrop hidden" id="infoModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <div class="modal-top">
+        <h3 id="modalTitle">About HiddenMoji</h3>
+        <button class="icon-button" id="closeModal" type="button" aria-label="Close information">✕</button>
+      </div>
+      <p>HiddenMoji transforms ordinary messages into mysterious emoji combinations using modern encryption. Encrypt a message, share the emoji code, and let someone with the password reveal what it says.</p>
+      <p><strong>How to use:</strong> Encrypt with a password, send the emoji code, then share the password separately through a safe channel. The receiver pastes the code into the SECRET tab and decrypts it with the same password.</p>
+      <p class="creator">Made with ❤️ by HARISH</p>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    // Each encrypted byte is represented by two emoji symbols (one per hexadecimal nibble).
+    // Encryption uses Web Crypto: PBKDF2-SHA-256 + AES-256-GCM.
+    const EMOJI_ALPHABET = ["🌙","🦊","🍀","🚀","🐼","🌻","🎧","🧩","🍉","🦋","⚡","🪐","🎈","🐬","🔮","🍄"];
+    const EMOJI_TO_NIBBLE = new Map(EMOJI_ALPHABET.map((emoji, index) => [emoji, index]));
+    const MAGIC = [0x48, 0x4d, 0x01]; // "HM" + format version
+    const SALT_LENGTH = 16;
+    const IV_LENGTH = 12;
+    const ITERATIONS = 310000;
+    let currentMode = "encrypt";
+    let latestResult = "";
+
+    const $ = (id) => document.getElementById(id);
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder("utf-8", { fatal: true });
+
+    function setStatus(message, type = "") {
+      const status = $("status");
+      status.textContent = message;
+      status.className = "status" + (type ? " " + type : "");
+    }
+
+    function showOutput(value, placeholder = false) {
+      const output = $("output");
+      output.textContent = value;
+      output.classList.toggle("placeholder", placeholder);
+      latestResult = placeholder ? "" : value;
+    }
+
+    function bytesToEmojis(bytes) {
+      let result = "🔐";
+      for (const byte of bytes) {
+        result += EMOJI_ALPHABET[(byte >> 4) & 15] + EMOJI_ALPHABET[byte & 15];
+      }
+      return result;
+    }
+
+    function emojisToBytes(text) {
+      const symbols = Array.from(text).filter((symbol) => EMOJI_TO_NIBBLE.has(symbol));
+      if (symbols.length < 2 || symbols.length % 2 !== 0) {
+        throw new Error("That doesn't look like a complete HiddenMoji code.");
+      }
+      const bytes = new Uint8Array(symbols.length / 2);
+      for (let i = 0; i < symbols.length; i += 2) {
+        bytes[i / 2] = (EMOJI_TO_NIBBLE.get(symbols[i]) << 4) | EMOJI_TO_NIBBLE.get(symbols[i + 1]);
+      }
+      return bytes;
+    }
+
+    async function deriveKey(password, salt) {
+      const material = await crypto.subtle.importKey(
+        "raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]
+      );
+      return crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt, iterations: ITERATIONS, hash: "SHA-256" },
+        material,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt", "decrypt"]
+      );
+    }
+
+    async function encryptMessage() {
+      const message = $("plainInput").value;
+      const password = $("encryptPassword").value;
+      if (!message.trim()) return setStatus("Please enter a message first.", "error");
+      if (password.length < 8) return setStatus("Please use a password with at least 8 characters.", "error");
+      if (!window.crypto || !crypto.subtle || !window.isSecureContext) {
+        return setStatus("Secure encryption needs HTTPS. Open this site using its GitHub Pages HTTPS address.", "error");
+      }
+
+      const button = $("encryptButton");
+      button.disabled = true;
+      button.textContent = "ENCRYPTING...";
+      setStatus("Creating your encrypted emoji code...");
+      try {
+        const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
+        const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
+        const key = await deriveKey(password, salt);
+        const ciphertext = new Uint8Array(await crypto.subtle.encrypt(
+          { name: "AES-GCM", iv }, key, encoder.encode(message)
+        ));
+        const payload = new Uint8Array(MAGIC.length + SALT_LENGTH + IV_LENGTH + ciphertext.length);
+        payload.set(MAGIC, 0);
+        payload.set(salt, MAGIC.length);
+        payload.set(iv, MAGIC.length + SALT_LENGTH);
+        payload.set(ciphertext, MAGIC.length + SALT_LENGTH + IV_LENGTH);
+        showOutput(bytesToEmojis(payload));
+        setStatus("Encrypted successfully. Copy the emoji code and share the password separately.", "success");
+      } catch (error) {
+        console.error(error);
+        setStatus("Encryption failed in this browser. Please try again.", "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = "🔒 ENCRYPT MESSAGE";
+      }
+    }
+
+    async function decryptMessage() {
+      const secret = $("secretInput").value;
+      const password = $("decryptPassword").value;
+      if (!secret.trim()) return setStatus("Please paste a secret emoji code first.", "error");
+      if (!password) return setStatus("Please enter the message password.", "error");
+      if (!window.crypto || !crypto.subtle || !window.isSecureContext) {
+        return setStatus("Secure decryption needs HTTPS. Open this site using its GitHub Pages HTTPS address.", "error");
+      }
+
+      const button = $("decryptButton");
+      button.disabled = true;
+      button.textContent = "DECRYPTING...";
+      setStatus("Checking the code and decrypting...");
+      try {
+        const payload = emojisToBytes(secret);
+        const minimumLength = MAGIC.length + SALT_LENGTH + IV_LENGTH + 16;
+        if (payload.length < minimumLength ||
+            MAGIC.some((value, index) => payload[index] !== value)) {
+          throw new Error("This is not a valid HiddenMoji message.");
+        }
+        const saltStart = MAGIC.length;
+        const ivStart = saltStart + SALT_LENGTH;
+        const cipherStart = ivStart + IV_LENGTH;
+        const salt = payload.slice(saltStart, ivStart);
+        const iv = payload.slice(ivStart, cipherStart);
+        const ciphertext = payload.slice(cipherStart);
+        const key = await deriveKey(password, salt);
+        const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+        showOutput(decoder.decode(plaintext));
+        setStatus("Message decrypted successfully.", "success");
+      } catch (error) {
+        console.error(error);
+        showOutput("No message to show.", true);
+        setStatus("Couldn't decrypt. Check that the emoji code is complete and the password is correct.", "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = "🔓 DECRYPT MESSAGE";
+      }
+    }
+
+    async function pasteInto(id) {
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.readText) {
+          throw new Error("Clipboard access is unavailable");
+        }
+        const text = await navigator.clipboard.readText();
+        const field = $(id);
+        const start = field.selectionStart ?? field.value.length;
+        const end = field.selectionEnd ?? field.value.length;
+        field.value = field.value.slice(0, start) + text + field.value.slice(end);
+        field.focus();
+        field.selectionStart = field.selectionEnd = start + text.length;
+        setStatus("Pasted from clipboard.", "success");
+      } catch {
+        setStatus("Paste permission was blocked. Tap the input field and use your device's Paste option.", "error");
+      }
+    }
+
+    async function copyResult() {
+      if (!latestResult) return setStatus("There is no result to copy yet.", "error");
+      try {
+        await navigator.clipboard.writeText(latestResult);
+        setStatus("Copied to clipboard.", "success");
+      } catch {
+        setStatus("Copy was blocked. Select the result and copy it manually.", "error");
+      }
+    }
+
+    function switchMode(mode) {
+      currentMode = mode;
+      const encrypt = mode === "encrypt";
+      $("encryptPanel").classList.toggle("hidden", !encrypt);
+      $("decryptPanel").classList.toggle("hidden", encrypt);
+      $("textTab").classList.toggle("active", encrypt);
+      $("secretTab").classList.toggle("active", !encrypt);
+      $("textTab").setAttribute("aria-selected", String(encrypt));
+      $("secretTab").setAttribute("aria-selected", String(!encrypt));
+      $("outputLabel").textContent = encrypt ? "Your encrypted emoji message" : "Your original message";
+      showOutput("Your result will appear here...", true);
+      setStatus("");
+    }
+
+    function clearCurrent() {
+      if (currentMode === "encrypt") {
+        $("plainInput").value = "";
+        $("encryptPassword").value = "";
+      } else {
+        $("secretInput").value = "";
+        $("decryptPassword").value = "";
+      }
+      showOutput("Your result will appear here...", true);
+      setStatus("Cleared.", "success");
+    }
+
+    $("textTab").addEventListener("click", () => switchMode("encrypt"));
+    $("secretTab").addEventListener("click", () => switchMode("decrypt"));
+    $("encryptButton").addEventListener("click", encryptMessage);
+    $("decryptButton").addEventListener("click", decryptMessage);
+    $("copyButton").addEventListener("click", copyResult);
+    $("clearButton").addEventListener("click", clearCurrent);
+    document.querySelectorAll("[data-paste]").forEach((button) => {
+      button.addEventListener("click", () => pasteInto(button.dataset.paste));
+    });
+    document.querySelectorAll("[data-toggle]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const input = $(button.dataset.toggle);
+        input.type = input.type === "password" ? "text" : "password";
+        button.setAttribute("aria-label", input.type === "password" ? "Show password" : "Hide password");
+      });
+    });
+
+    $("infoButton").addEventListener("click", () => $("infoModal").classList.remove("hidden"));
+    $("closeModal").addEventListener("click", () => $("infoModal").classList.add("hidden"));
+    $("infoModal").addEventListener("click", (event) => {
+      if (event.target === $("infoModal")) $("infoModal").classList.add("hidden");
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") $("infoModal").classList.add("hidden");
+    });
+  </script>
+</body>
+</html>
